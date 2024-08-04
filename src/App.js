@@ -485,7 +485,16 @@ function App() {
                 </Routes>
               </>
             ) : (
-              <Auth onLogin={handleLogin} />
+              <>
+                <nav>
+                  <Link to="/login">Login</Link>
+                  <Link to="/register">Register</Link>
+                </nav>
+                <Routes>
+                  <Route path="/login" element={<Auth onLogin={handleLogin} />} />
+                  <Route path="/register" element={<Auth onLogin={handleLogin} />} />
+                </Routes>
+              </>
             )}
           </VStack>
         </Container>
