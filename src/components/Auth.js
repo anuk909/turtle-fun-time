@@ -17,20 +17,31 @@ import axios from 'axios';
 function Auth({ onLogin }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [email, setEmail] = useState('');
-  const [isLogin, setIsLogin] = useState(true);
+  const [tabIndex, setTabIndex] = useState(0);
   const toast = useToast();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      if (isLogin) {
-        const response = await axios.post('http://localhost:3002/login', { username, password });
+      if (tabIndex === 0) {
+        const response = await axios.post('https://your-deployed-backend-url.com/login', { username, password });
         if (response.data.success) {
           onLogin(username, response.data.userId);
         }
       } else {
-        const response = await axios.post('http://localhost:3002/register', { username, password, email });
+        if (password !== confirmPassword) {
+          toast({
+            title: "Registration failed",
+            description: "Passwords do not match",
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+          });
+          return;
+        }
+        const response = await axios.post('https://your-deployed-backend-url.com/register', { username, password, email });
         if (response.data.id) {
           toast({
             title: "Registration successful",
@@ -39,12 +50,12 @@ function Auth({ onLogin }) {
             duration: 3000,
             isClosable: true,
           });
-          setIsLogin(true);
+          setTabIndex(0);
         }
       }
     } catch (error) {
       toast({
-        title: isLogin ? "Login failed" : "Registration failed",
+        title: tabIndex === 0 ? "Login failed" : "Registration failed",
         description: error.response?.data?.message || "An error occurred",
         status: "error",
         duration: 3000,
@@ -53,11 +64,19 @@ function Auth({ onLogin }) {
     }
   };
 
+  const handleTabsChange = (index) => {
+    setTabIndex(index);
+    setUsername('');
+    setPassword('');
+    setConfirmPassword('');
+    setEmail('');
+  };
+
   return (
-    <Tabs isFitted variant="enclosed">
+    <Tabs isFitted variant="enclosed" index={tabIndex} onChange={handleTabsChange}>
       <TabList mb="1em">
-        <Tab onClick={() => setIsLogin(true)}>Login</Tab>
-        <Tab onClick={() => setIsLogin(false)}>Register</Tab>
+        <Tab>Login</Tab>
+        <Tab>Register</Tab>
       </TabList>
       <TabPanels>
         <TabPanel>
@@ -115,6 +134,15 @@ function Auth({ onLogin }) {
                   placeholder="Choose a password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                />
+              </FormControl>
+              <FormControl isRequired>
+                <FormLabel>Confirm Password</FormLabel>
+                <Input
+                  type="password"
+                  placeholder="Confirm your password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
                 />
               </FormControl>
               <Button type="submit" colorScheme="green" width="full">
