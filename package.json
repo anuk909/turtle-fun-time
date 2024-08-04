@@ -9,9 +9,34 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onCommand:turtle-fun-time.turtleTrivia",
+    "onStartupFinished"
+  ],
   "main": "./extension.js",
-  "contributes": {},
+  "contributes": {
+    "commands": [
+      {
+        "command": "turtle-fun-time.turtleTrivia",
+        "title": "Turtle Trivia"
+      }
+    ],
+    "configuration": {
+      "title": "Turtle Fun Time",
+      "properties": {
+        "turtleFunTime.dailyGoal": {
+          "type": "number",
+          "default": 10,
+          "description": "Set the daily goal for file saves to trigger the turtle animation."
+        },
+        "turtleFunTime.showTriviaReminders": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable or disable periodic reminders to play the Turtle Trivia game."
+        }
+      }
+    }
+  },
   "scripts": {
     "lint": "eslint .",
     "pretest": "npm run lint",
