@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   VStack,
   FormControl,
@@ -20,7 +20,22 @@ function Auth({ onLogin }) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [email, setEmail] = useState('');
   const [tabIndex, setTabIndex] = useState(0);
+  const [isFormValid, setIsFormValid] = useState(false);
   const toast = useToast();
+
+  useEffect(() => {
+    if (tabIndex === 0) {
+      setIsFormValid(username.trim() !== '' && password.trim() !== '');
+    } else {
+      setIsFormValid(
+        username.trim() !== '' &&
+        password.trim() !== '' &&
+        confirmPassword.trim() !== '' &&
+        email.trim() !== '' &&
+        password === confirmPassword
+      );
+    }
+  }, [username, password, confirmPassword, email, tabIndex]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -70,6 +85,7 @@ function Auth({ onLogin }) {
     setPassword('');
     setConfirmPassword('');
     setEmail('');
+    setIsFormValid(false);
   };
 
   return (
@@ -100,7 +116,7 @@ function Auth({ onLogin }) {
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </FormControl>
-              <Button type="submit" colorScheme="blue" width="full">
+              <Button type="submit" colorScheme="blue" width="full" isDisabled={!isFormValid}>
                 Login
               </Button>
             </VStack>
@@ -145,7 +161,7 @@ function Auth({ onLogin }) {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                 />
               </FormControl>
-              <Button type="submit" colorScheme="green" width="full">
+              <Button type="submit" colorScheme="green" width="full" isDisabled={!isFormValid}>
                 Register
               </Button>
             </VStack>
