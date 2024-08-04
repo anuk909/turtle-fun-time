@@ -66,6 +66,7 @@ function activate(context) {
 
     // Turtle Trivia Game
     const triviaDisposable = vscode.commands.registerCommand('turtle-fun-time.turtleTrivia', async function () {
+        console.log('Turtle Trivia command triggered');
         const triviaQuestions = [
             {
                 question: "What is the largest species of turtle?",
@@ -86,18 +87,23 @@ function activate(context) {
 
         let score = 0;
         for (let question of triviaQuestions) {
+            console.log(`Displaying question: ${question.question}`);
             const answer = await vscode.window.showQuickPick(question.options, {
                 placeHolder: question.question
             });
+            console.log(`User selected answer: ${answer}`);
 
             if (answer === question.options[question.answer]) {
                 score++;
+                console.log('Correct answer');
                 vscode.window.showInformationMessage('Correct! 🐢');
             } else {
+                console.log('Incorrect answer');
                 vscode.window.showInformationMessage(`Sorry, the correct answer was: ${question.options[question.answer]} 🐢`);
             }
         }
 
+        console.log(`Trivia game completed. Score: ${score}/${triviaQuestions.length}`);
         vscode.window.showInformationMessage(`You scored ${score} out of ${triviaQuestions.length}! 🐢`);
     });
 
