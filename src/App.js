@@ -19,9 +19,6 @@ import {
   Tab,
   TabPanel,
   Avatar,
-  Textarea,
-  Grid,
-  GridItem,
   Modal,
   ModalOverlay,
   ModalContent,
@@ -140,13 +137,11 @@ function Dashboard({ username, userId }) {
   const [newEventDate, setNewEventDate] = useState('');
   const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [weatherData, setWeatherData] = useState(null);
   const [chatMessages, setChatMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
 
   useEffect(() => {
     fetchEvents();
-    fetchWeatherData();
   }, []);
 
   const fetchEvents = async () => {
@@ -155,15 +150,6 @@ function Dashboard({ username, userId }) {
       setEvents(response.data);
     } catch (error) {
       console.error('Error fetching events:', error);
-    }
-  };
-
-  const fetchWeatherData = async () => {
-    try {
-      const response = await axios.get('https://api.openweathermap.org/data/2.5/forecast?q=London&appid=YOUR_API_KEY');
-      setWeatherData(response.data);
-    } catch (error) {
-      console.error('Error fetching weather data:', error);
     }
   };
 
