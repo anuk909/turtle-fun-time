@@ -65,7 +65,9 @@ function Auth({ onLogin }) {
             duration: 3000,
             isClosable: true,
           });
-          setTabIndex(0);
+          setTimeout(() => {
+            setTabIndex(0);
+          }, 2000); // Delay switching to login tab by 2 seconds
         }
       }
     } catch (error) {
