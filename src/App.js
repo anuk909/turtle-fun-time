@@ -150,6 +150,13 @@ function Dashboard({ username, userId }) {
       setEvents(response.data);
     } catch (error) {
       console.error('Error fetching events:', error);
+      toast({
+        title: "Error fetching events",
+        description: "Unable to load your events. Please try again later.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
     }
   };
 
