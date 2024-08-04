@@ -22,7 +22,7 @@ Turtle Fun Time offers the following features:
 
 To install the Turtle Fun Time extension:
 
-1. Download the .vsix file from the [releases page](https://github.com/your-username/turtle-fun-time/releases).
+1. Download the .vsix file from the [releases page](https://github.com/anuk909/turtle-fun-time/releases).
 2. Open Visual Studio Code.
 3. Go to the Extensions view (Ctrl+Shift+X).
 4. Click on the three dots (...) in the top-right corner of the Extensions view.
@@ -47,7 +47,7 @@ Currently, Turtle Fun Time does not add any configurable settings to VSCode. All
 
 ## Known Issues
 
-There are currently no known issues. If you encounter any problems, please report them on our [GitHub issues page](https://github.com/your-username/turtle-fun-time/issues).
+There are currently no known issues. If you encounter any problems, please report them on our [GitHub issues page](https://github.com/anuk909/turtle-fun-time/issues).
 
 ## Release Notes
 
