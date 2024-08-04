@@ -2,7 +2,7 @@
 
 Turtle Fun Time is a fun and interactive VSCode extension centered around turtles. It brings a touch of turtle-themed joy to your coding experience!
 
-Current version: 1.1.0
+Current version: 1.1.1
 
 ## Features
 

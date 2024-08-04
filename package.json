@@ -2,7 +2,7 @@
   "name": "turtle-fun-time",
   "displayName": "Turtle Fun Time",
   "description": "A fun VSCode plugin featuring turtles to enhance your coding experience.",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "engines": {
     "vscode": "^1.92.0"
   },
