@@ -6,8 +6,14 @@ const cors = require('cors');
 const app = express();
 const port = process.env.PORT || 3003;
 
+// CORS configuration
+const corsOptions = {
+  origin: 'https://charming-gumption-994c31.netlify.app',
+  optionsSuccessStatus: 200
+};
+
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // SQLite database setup
@@ -19,7 +25,8 @@ const db = new sqlite3.Database('./eventmanager.sqlite', (err) => {
     db.run(`CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT UNIQUE,
-      password TEXT
+      password TEXT,
+      email TEXT UNIQUE
     )`);
     db.run(`CREATE TABLE IF NOT EXISTS events (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -42,12 +49,15 @@ const transporter = nodemailer.createTransport({
 
 // Routes
 app.post('/register', (req, res) => {
-  const { username, password } = req.body;
-  db.run('INSERT INTO users (username, password) VALUES (?, ?)', [username, password], function(err) {
+  console.log('Received registration request:', req.body);
+  const { username, password, email } = req.body;
+  db.run('INSERT INTO users (username, password, email) VALUES (?, ?, ?)', [username, password, email], function(err) {
     if (err) {
+      console.error('Error during user registration:', err);
       res.status(400).json({ error: err.message });
       return;
     }
+    console.log('User registered successfully. User ID:', this.lastID);
     res.json({ id: this.lastID });
   });
 });
