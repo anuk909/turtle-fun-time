@@ -46,7 +46,7 @@ function Auth({ onLogin }) {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:3002/login', { username, password });
+      const response = await axios.post('https://react-app-3nh3s87e.devinapps.com/login', { username, password });
       if (response.data.success) {
         onLogin(username, response.data.userId);
       }
@@ -146,7 +146,7 @@ function Dashboard({ username, userId }) {
 
   const fetchEvents = async () => {
     try {
-      const response = await axios.get(`http://localhost:3002/events/${userId}`);
+      const response = await axios.get(`https://react-app-3nh3s87e.devinapps.com/events/${userId}`);
       setEvents(response.data);
     } catch (error) {
       console.error('Error fetching events:', error);
@@ -157,7 +157,7 @@ function Dashboard({ username, userId }) {
     e.preventDefault();
     if (newEventName && newEventDate) {
       try {
-        await axios.post('http://localhost:3002/events', { name: newEventName, date: newEventDate, creatorId: userId });
+        await axios.post('https://react-app-3nh3s87e.devinapps.com/events', { name: newEventName, date: newEventDate, creatorId: userId });
         fetchEvents();
         setNewEventName('');
         setNewEventDate('');
@@ -190,7 +190,7 @@ function Dashboard({ username, userId }) {
 
   const handleUpdateEvent = async (updatedEvent) => {
     try {
-      await axios.put(`http://localhost:3002/events/${updatedEvent.id}`, updatedEvent);
+      await axios.put(`https://react-app-3nh3s87e.devinapps.com/events/${updatedEvent.id}`, updatedEvent);
       fetchEvents();
       toast({
         title: "Event updated",

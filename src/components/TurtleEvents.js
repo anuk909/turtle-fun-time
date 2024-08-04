@@ -26,7 +26,7 @@ function TurtleEvents() {
 
   const fetchEvents = async () => {
     try {
-      const response = await axios.get('http://localhost:3002/turtle-events');
+      const response = await axios.get('https://react-app-3nh3s87e.devinapps.com/turtle-events');
       setEvents(response.data);
     } catch (error) {
       console.error('Error fetching turtle events:', error);
@@ -48,7 +48,7 @@ function TurtleEvents() {
   const handleCreateEvent = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:3002/turtle-events', newEvent);
+      await axios.post('https://react-app-3nh3s87e.devinapps.com/turtle-events', newEvent);
       fetchEvents();
       setNewEvent({ name: '', description: '', date: '', location: '' });
       toast({
@@ -72,7 +72,7 @@ function TurtleEvents() {
 
   const handleRSVP = async (eventId) => {
     try {
-      await axios.post(`http://localhost:3002/turtle-events/${eventId}/rsvp`);
+      await axios.post(`https://react-app-3nh3s87e.devinapps.com/turtle-events/${eventId}/rsvp`);
       toast({
         title: "RSVP Successful",
         description: "You have successfully RSVP'd to the event",
