@@ -66,6 +66,13 @@ There are currently no known issues. If you encounter any problems, please repor
 
 ## Release Notes
 
+### 1.1.1
+
+Improvements:
+- Enhanced error handling in the Turtle Trivia command for a smoother user experience
+- Improved user feedback during the Turtle Trivia game
+- Minor bug fixes and performance optimizations
+
 ### 1.1.0
 
 New features added:
