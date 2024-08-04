@@ -41,7 +41,7 @@ function Auth({ onLogin }) {
     e.preventDefault();
     try {
       if (tabIndex === 0) {
-        const response = await axios.post('https://your-deployed-backend-url.com/login', { username, password });
+        const response = await axios.post('https://react-app-3nh3s87e.devinapps.com/login', { username, password });
         if (response.data.success) {
           onLogin(username, response.data.userId);
         }
@@ -56,7 +56,7 @@ function Auth({ onLogin }) {
           });
           return;
         }
-        const response = await axios.post('https://your-deployed-backend-url.com/register', { username, password, email });
+        const response = await axios.post('https://react-app-3nh3s87e.devinapps.com/register', { username, password, email });
         if (response.data.id) {
           toast({
             title: "Registration successful",
