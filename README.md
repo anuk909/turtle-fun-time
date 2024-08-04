@@ -10,13 +10,15 @@ Turtle Fun Time offers the following features:
    - Shows a turtle emoji (🐢) in the status bar
    - Updates with encouraging messages when you save files or run build tasks
 
-2. **Turtle Facts**: Displays random turtle facts in the output console.
-   - Learn interesting facts about turtles while you code!
-   - A new fact is shown each time you open a file
+2. **Turtle Progress Tracker**: Keeps track of your daily coding progress.
+   - Counts the number of files you save each day
+   - Displays your progress towards a daily goal
+   - Rewards you with a fun turtle animation when you reach your goal
 
-3. **Turtle Code Formatter**: Adds turtle-themed comments and formatting when you save your files.
-   - Decorates your classes and functions with turtle-themed ASCII art comments
-   - Adds a random turtle fact as a comment at the beginning of your file
+3. **Turtle Trivia Game**: Test your knowledge about turtles while taking a coding break.
+   - Access the game by running the "Turtle Trivia" command
+   - Answer multiple-choice questions about turtles
+   - Get instant feedback on your answers and see your final score
 
 ## Installation
 
@@ -33,8 +35,9 @@ To install the Turtle Fun Time extension:
 Once installed, Turtle Fun Time will automatically activate for your workspace. Here's how to enjoy its features:
 
 - The Turtle Coding Companion will appear in your status bar as soon as you open VSCode.
-- Open a new file to see a random turtle fact in an information message.
-- Save any file to see the Turtle Code Formatter in action, adding turtle-themed comments to your code.
+- Save files to see your progress in the Turtle Progress Tracker. The status bar will update to show your current progress.
+- When you reach your daily coding goal, you'll be rewarded with a fun turtle animation.
+- To play the Turtle Trivia Game, open the Command Palette (Ctrl+Shift+P) and search for "Turtle Trivia".
 - Start a build task to see encouraging messages from your Turtle Coding Companion.
 
 ## Requirements
@@ -51,12 +54,16 @@ There are currently no known issues. If you encounter any problems, please repor
 
 ## Release Notes
 
+### 1.1.0
+
+New features added:
+- Turtle Progress Tracker
+- Turtle Trivia Game
+
 ### 1.0.0
 
 Initial release of Turtle Fun Time, including:
 - Turtle Coding Companion
-- Turtle Facts
-- Turtle Code Formatter
 
 ---
 
