@@ -67,44 +67,58 @@ function activate(context) {
     // Turtle Trivia Game
     const triviaDisposable = vscode.commands.registerCommand('turtle-fun-time.turtleTrivia', async function () {
         console.log('Turtle Trivia command triggered');
-        const triviaQuestions = [
-            {
-                question: "What is the largest species of turtle?",
-                options: ["Green Sea Turtle", "Leatherback Sea Turtle", "Loggerhead Sea Turtle", "Hawksbill Sea Turtle"],
-                answer: 1
-            },
-            {
-                question: "How long can sea turtles hold their breath underwater?",
-                options: ["5 minutes", "30 minutes", "2 hours", "5 hours"],
-                answer: 2
-            },
-            {
-                question: "Which of these is not a type of sea turtle?",
-                options: ["Kemp's Ridley", "Flatback", "Snapping", "Olive Ridley"],
-                answer: 2
-            }
-        ];
+        try {
+            const triviaQuestions = [
+                {
+                    question: "What is the largest species of turtle?",
+                    options: ["Green Sea Turtle", "Leatherback Sea Turtle", "Loggerhead Sea Turtle", "Hawksbill Sea Turtle"],
+                    answer: 1
+                },
+                {
+                    question: "How long can sea turtles hold their breath underwater?",
+                    options: ["5 minutes", "30 minutes", "2 hours", "5 hours"],
+                    answer: 2
+                },
+                {
+                    question: "Which of these is not a type of sea turtle?",
+                    options: ["Kemp's Ridley", "Flatback", "Snapping", "Olive Ridley"],
+                    answer: 2
+                }
+            ];
 
-        let score = 0;
-        for (let question of triviaQuestions) {
-            console.log(`Displaying question: ${question.question}`);
-            const answer = await vscode.window.showQuickPick(question.options, {
-                placeHolder: question.question
-            });
-            console.log(`User selected answer: ${answer}`);
+            console.log('Trivia questions loaded successfully');
 
-            if (answer === question.options[question.answer]) {
-                score++;
-                console.log('Correct answer');
-                vscode.window.showInformationMessage('Correct! 🐢');
-            } else {
-                console.log('Incorrect answer');
-                vscode.window.showInformationMessage(`Sorry, the correct answer was: ${question.options[question.answer]} 🐢`);
+            let score = 0;
+            for (let i = 0; i < triviaQuestions.length; i++) {
+                const question = triviaQuestions[i];
+                console.log(`Displaying question ${i + 1}: ${question.question}`);
+                const answer = await vscode.window.showQuickPick(question.options, {
+                    placeHolder: question.question
+                });
+                console.log(`User selected answer for question ${i + 1}: ${answer}`);
+
+                if (answer === undefined) {
+                    console.log('User cancelled the question');
+                    vscode.window.showInformationMessage('Trivia game cancelled');
+                    return;
+                }
+
+                if (answer === question.options[question.answer]) {
+                    score++;
+                    console.log(`Correct answer for question ${i + 1}`);
+                    vscode.window.showInformationMessage('Correct! 🐢');
+                } else {
+                    console.log(`Incorrect answer for question ${i + 1}`);
+                    vscode.window.showInformationMessage(`Sorry, the correct answer was: ${question.options[question.answer]} 🐢`);
+                }
             }
+
+            console.log(`Trivia game completed. Score: ${score}/${triviaQuestions.length}`);
+            vscode.window.showInformationMessage(`You scored ${score} out of ${triviaQuestions.length}! 🐢`);
+        } catch (error) {
+            console.error('Error in Turtle Trivia command:', error);
+            vscode.window.showErrorMessage('An error occurred while running Turtle Trivia. Please check the console for details.');
         }
-
-        console.log(`Trivia game completed. Score: ${score}/${triviaQuestions.length}`);
-        vscode.window.showInformationMessage(`You scored ${score} out of ${triviaQuestions.length}! 🐢`);
     });
 
     context.subscriptions.push(triviaDisposable);
