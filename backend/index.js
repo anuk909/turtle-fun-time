@@ -2,6 +2,9 @@ const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const nodemailer = require('nodemailer');
 const cors = require('cors');
+const morgan = require('morgan');
+const fs = require('fs');
+const path = require('path');
 
 const app = express();
 const port = process.env.PORT || 3003;
@@ -12,9 +15,14 @@ const corsOptions = {
   optionsSuccessStatus: 200
 };
 
+// Create a write stream (in append mode)
+const accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' });
+
 // Middleware
 app.use(cors(corsOptions));
 app.use(express.json());
+app.use(morgan('combined', { stream: accessLogStream }));
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :req[header] :res[header]'));
 
 // SQLite database setup
 const db = new sqlite3.Database('./eventmanager.sqlite', (err) => {
