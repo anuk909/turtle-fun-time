@@ -486,14 +486,12 @@ function App() {
               </>
             ) : (
               <>
-                <nav>
-                  <Link to="/login">Login</Link>
-                  <Link to="/register">Register</Link>
-                </nav>
-                <Routes>
-                  <Route path="/login" element={<Auth onLogin={handleLogin} />} />
-                  <Route path="/register" element={<Auth onLogin={handleLogin} />} />
-                </Routes>
+                <VStack spacing={6} align="stretch" width="100%">
+                  <Text fontSize="xl" textAlign="center">
+                    Welcome! Please log in or register to access the Virtual Event Manager.
+                  </Text>
+                </VStack>
+                <Auth onLogin={handleLogin} />
               </>
             )}
           </VStack>
