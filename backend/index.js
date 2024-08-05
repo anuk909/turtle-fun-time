@@ -11,13 +11,12 @@ const port = process.env.PORT || 3003;
 
 // CORS configuration
 const corsOptions = {
-  origin: 'https://charming-gumption-994c31.netlify.app',
+  origin: '*', // Allow all origins
   optionsSuccessStatus: 200,
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
   credentials: true,
-  preflightContinue: false,
-  optionsSuccessStatus: 204
+  preflightContinue: false
 };
 
 // Enable CORS pre-flight requests for all routes
@@ -34,10 +33,9 @@ app.use(morgan(':method :url :status :res[content-length] - :response-time ms :r
 
 // Ensure CORS headers are set for all responses
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'https://charming-gumption-994c31.netlify.app');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  res.header('Access-Control-Allow-Credentials', 'true');
   if (req.method === 'OPTIONS') {
     return res.sendStatus(200);
   }
@@ -47,10 +45,9 @@ app.use((req, res, next) => {
 // Error handling middleware for CORS issues
 app.use((err, req, res, next) => {
   // Set CORS headers for all error responses
-  res.header('Access-Control-Allow-Origin', 'https://charming-gumption-994c31.netlify.app');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  res.header('Access-Control-Allow-Credentials', 'true');
 
   if (err.name === 'CORSError') {
     console.error('CORS Error:', err.message);
@@ -99,7 +96,7 @@ const transporter = nodemailer.createTransport({
 });
 
 // Routes
-app.post('/register', (req, res) => {
+app.post('/auth/register', (req, res) => {
   console.log('Received registration request:', req.body);
   const { username, password, email } = req.body;
 
