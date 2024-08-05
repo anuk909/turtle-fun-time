@@ -11,7 +11,7 @@ const port = process.env.PORT || 3003;
 
 // CORS configuration
 const corsOptions = {
-  origin: '*', // Allow all origins
+  origin: ['https://monumental-jelly-633c89.netlify.app', 'http://localhost:3000'],
   optionsSuccessStatus: 200,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
