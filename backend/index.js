@@ -19,7 +19,8 @@ const corsOptions = {
   exposedHeaders: ['Access-Control-Allow-Origin', 'Access-Control-Allow-Credentials'],
   credentials: true,
   maxAge: 86400, // 24 hours in seconds
-  preflightContinue: false
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 };
 
 // Log CORS configuration
@@ -28,38 +29,18 @@ console.log('CORS configuration:', JSON.stringify(corsOptions, null, 2));
 // Create a write stream (in append mode)
 const accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' });
 
-// Middleware
-// Apply CORS middleware first to handle preflight requests and set appropriate headers
-// This is crucial for proper CORS functionality, especially for handling OPTIONS requests
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (corsOptions.origin.includes(origin)) {
-    res.header('Access-Control-Allow-Origin', origin);
-    res.header('Access-Control-Allow-Methods', corsOptions.methods.join(','));
-    res.header('Access-Control-Allow-Headers', corsOptions.allowedHeaders.join(','));
-    res.header('Access-Control-Allow-Credentials', 'true');
-    res.header('Access-Control-Max-Age', corsOptions.maxAge.toString());
-    if (req.method === 'OPTIONS') {
-      return res.sendStatus(204);
-    }
-  }
-  next();
-});
-
 // Use the cors middleware with the updated options
-app.use(cors({
-  ...corsOptions,
-  origin: (origin, callback) => {
-    if (!origin || corsOptions.origin.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.log(`CORS blocked request from origin: ${origin}`);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-  optionsSuccessStatus: 200
-}));
+app.use(cors(corsOptions));
+
+// CORS error handling
+app.use((err, req, res, next) => {
+  if (err.name === 'CORSError') {
+    console.error('CORS Error:', err.message);
+    res.status(403).json({ error: 'CORS error', message: 'Origin not allowed' });
+  } else {
+    next(err);
+  }
+});
 
 // Log all incoming requests for debugging
 app.use((req, res, next) => {
@@ -108,15 +89,26 @@ app.use((err, req, res, next) => {
 // SQLite database setup
 const db = new sqlite3.Database('./eventmanager.sqlite', (err) => {
   if (err) {
-    console.error('Error opening database', err);
+    console.error('Error opening database:', err);
+    process.exit(1); // Exit the process if database connection fails
   } else {
     console.log('Connected to the SQLite database.');
+
+    // Create users table
     db.run(`CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT UNIQUE,
       password TEXT,
       email TEXT UNIQUE
-    )`);
+    )`, (err) => {
+      if (err) {
+        console.error('Error creating users table:', err);
+      } else {
+        console.log('Users table created or already exists.');
+      }
+    });
+
+    // Create events table
     db.run(`CREATE TABLE IF NOT EXISTS events (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT,
@@ -125,7 +117,22 @@ const db = new sqlite3.Database('./eventmanager.sqlite', (err) => {
       location TEXT,
       creator_id INTEGER,
       FOREIGN KEY(creator_id) REFERENCES users(id)
-    )`);
+    )`, (err) => {
+      if (err) {
+        console.error('Error creating events table:', err);
+      } else {
+        console.log('Events table created or already exists.');
+      }
+    });
+  }
+});
+
+// Enable foreign key support
+db.run('PRAGMA foreign_keys = ON', (err) => {
+  if (err) {
+    console.error('Error enabling foreign key support:', err);
+  } else {
+    console.log('Foreign key support enabled.');
   }
 });
 
@@ -140,30 +147,34 @@ const transporter = nodemailer.createTransport({
 });
 
 // Routes
-app.post('/register', async (req, res) => {
+app.post(['/register', '/auth/register'], async (req, res) => {
   console.log('Received registration request:', { ...req.body, password: '[REDACTED]' });
   const { username, password, email } = req.body;
 
   // Enhanced input validation
   if (!username || !password || !email) {
+    console.log('Registration failed: Missing required fields');
     return res.status(400).json({ error: 'Missing required fields', details: { username: !username, password: !password, email: !email } });
   }
 
   // Validate username (alphanumeric, 3-20 characters)
   const usernameRegex = /^[a-zA-Z0-9]{3,20}$/;
   if (!usernameRegex.test(username)) {
+    console.log('Registration failed: Invalid username format');
     return res.status(400).json({ error: 'Invalid username format', message: 'Username must be 3-20 alphanumeric characters' });
   }
 
   // Validate email format
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
+    console.log('Registration failed: Invalid email format');
     return res.status(400).json({ error: 'Invalid email format', message: 'Please provide a valid email address' });
   }
 
   // Validate password strength (at least 8 characters, including uppercase, lowercase, number)
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
   if (!passwordRegex.test(password)) {
+    console.log('Registration failed: Weak password');
     return res.status(400).json({ error: 'Weak password', message: 'Password must be at least 8 characters long and include uppercase, lowercase, and numbers' });
   }
 
@@ -177,10 +188,13 @@ app.post('/register', async (req, res) => {
       if (err) {
         console.error('Error during user registration:', err.message);
         if (err.message.includes('UNIQUE constraint failed: users.username')) {
+          console.log('Registration failed: Username already exists');
           return res.status(409).json({ error: 'Username already exists', message: 'Please choose a different username' });
         } else if (err.message.includes('UNIQUE constraint failed: users.email')) {
+          console.log('Registration failed: Email already registered');
           return res.status(409).json({ error: 'Email already registered', message: 'This email is already associated with an account' });
         }
+        console.log('Registration failed: Internal server error');
         return res.status(500).json({ error: 'Internal server error', message: 'An unexpected error occurred during registration' });
       }
       console.log('User registered successfully. User ID:', this.lastID);
@@ -188,6 +202,7 @@ app.post('/register', async (req, res) => {
     });
   } catch (error) {
     console.error('Error during registration:', error.message);
+    console.log('Registration failed: Internal server error');
     res.status(500).json({ error: 'Internal server error', message: 'An unexpected error occurred during registration' });
   }
 });
