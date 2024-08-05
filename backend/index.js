@@ -44,10 +44,11 @@ app.use((req, res, next) => {
 
 // Error handling middleware for CORS issues
 app.use((err, req, res, next) => {
-  // Set CORS headers for all error responses
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  // Set CORS headers for all error responses using corsOptions
+  res.header('Access-Control-Allow-Origin', corsOptions.origin);
+  res.header('Access-Control-Allow-Methods', corsOptions.methods.join(', '));
+  res.header('Access-Control-Allow-Headers', corsOptions.allowedHeaders.join(', '));
+  res.header('Access-Control-Allow-Credentials', corsOptions.credentials);
 
   if (err.name === 'CORSError') {
     console.error('CORS Error:', err.message);
