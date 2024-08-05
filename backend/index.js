@@ -19,9 +19,20 @@ const corsOptions = {
   exposedHeaders: ['Access-Control-Allow-Origin', 'Access-Control-Allow-Credentials'],
   credentials: true,
   maxAge: 86400, // 24 hours in seconds
-  preflightContinue: false,
-  optionsSuccessStatus: 204
+  preflightContinue: false
 };
+
+// Enable CORS for all routes
+app.use(cors(corsOptions));
+
+// Add CORS headers to all responses
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', corsOptions.origin);
+  res.header('Access-Control-Allow-Methods', corsOptions.methods.join(','));
+  res.header('Access-Control-Allow-Headers', corsOptions.allowedHeaders.join(','));
+  res.header('Access-Control-Allow-Credentials', corsOptions.credentials);
+  next();
+});
 
 // Log CORS configuration
 console.log('CORS configuration:', JSON.stringify(corsOptions, null, 2));
@@ -72,6 +83,10 @@ console.log('Middleware setup complete');
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Error:', err);
+
+  // Ensure CORS headers are set for all error responses
+  res.header('Access-Control-Allow-Origin', corsOptions.origin);
+  res.header('Access-Control-Allow-Credentials', 'true');
 
   if (err.name === 'CORSError') {
     res.status(403).json({ error: 'CORS error', message: 'Origin not allowed' });
@@ -147,7 +162,9 @@ const transporter = nodemailer.createTransport({
 });
 
 // Routes
-app.post(['/register', '/auth/register'], async (req, res) => {
+app.options(['/register', '/auth/register'], cors(corsOptions)); // Handle preflight requests
+
+app.post(['/register', '/auth/register'], cors(corsOptions), async (req, res) => {
   console.log('Received registration request:', { ...req.body, password: '[REDACTED]' });
   const { username, password, email } = req.body;
 
