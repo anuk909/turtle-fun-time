@@ -17,41 +17,21 @@ const corsOptions = {
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
   credentials: true,
-  preflightContinue: false,
-  exposedHeaders: ['Access-Control-Allow-Origin'],
   maxAge: 86400 // 24 hours in seconds
 };
-
-// Enable CORS pre-flight requests for all routes
-app.options('*', cors(corsOptions));
 
 // Create a write stream (in append mode)
 const accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' });
 
 // Middleware
 app.use(cors(corsOptions)); // Apply CORS middleware first
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', corsOptions.origin);
-  res.header('Access-Control-Allow-Methods', corsOptions.methods.join(', '));
-  res.header('Access-Control-Allow-Headers', corsOptions.allowedHeaders.join(', '));
-  res.header('Access-Control-Allow-Credentials', corsOptions.credentials);
-  next();
-});
 app.use(express.json());
 app.use(morgan('combined', { stream: accessLogStream }));
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :req[header] :res[header]'));
+console.log('Middleware setup complete');
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  // Set CORS headers for all responses, including error responses
-  const origin = req.headers.origin;
-  if (corsOptions.origin.includes(origin)) {
-    res.header('Access-Control-Allow-Origin', origin);
-  }
-  res.header('Access-Control-Allow-Methods', corsOptions.methods.join(', '));
-  res.header('Access-Control-Allow-Headers', corsOptions.allowedHeaders.join(', '));
-  res.header('Access-Control-Allow-Credentials', corsOptions.credentials);
-
   console.error('Error:', err.message);
 
   if (err.name === 'CORSError') {
@@ -61,18 +41,6 @@ app.use((err, req, res, next) => {
   } else {
     res.status(500).json({ error: 'Internal server error', message: 'An unexpected error occurred' });
   }
-});
-
-// Middleware to set CORS headers for all responses
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (corsOptions.origin.includes(origin)) {
-    res.header('Access-Control-Allow-Origin', origin);
-  }
-  res.header('Access-Control-Allow-Methods', corsOptions.methods.join(', '));
-  res.header('Access-Control-Allow-Headers', corsOptions.allowedHeaders.join(', '));
-  res.header('Access-Control-Allow-Credentials', corsOptions.credentials);
-  next();
 });
 
 // SQLite database setup
@@ -111,7 +79,7 @@ const transporter = nodemailer.createTransport({
 
 // Routes
 app.post('/auth/register', async (req, res) => {
-  console.log('Received registration request:', req.body);
+  console.log('Received registration request:', { ...req.body, password: '[REDACTED]' });
   const { username, password, email } = req.body;
 
   if (!username || !password || !email) {
@@ -132,7 +100,7 @@ app.post('/auth/register', async (req, res) => {
     // Insert user into database
     db.run('INSERT INTO users (username, password, email) VALUES (?, ?, ?)', [username, hashedPassword, email], function(err) {
       if (err) {
-        console.error('Error during user registration:', err);
+        console.error('Error during user registration:', err.message);
         if (err.message.includes('UNIQUE constraint failed')) {
           return res.status(409).json({ error: 'Username or email already exists' });
         }
@@ -142,29 +110,39 @@ app.post('/auth/register', async (req, res) => {
       res.status(201).json({ id: this.lastID, message: 'User registered successfully' });
     });
   } catch (error) {
-    console.error('Error hashing password:', error);
+    console.error('Error during registration:', error.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 app.post('/login', async (req, res) => {
+  console.log('Received login request:', { username: req.body.username });
   const { username, password } = req.body;
+
+  if (!username || !password) {
+    console.log('Login failed: Missing username or password');
+    return res.status(400).json({ success: false, message: 'Username and password are required' });
+  }
+
   try {
     db.get('SELECT * FROM users WHERE username = ?', [username], async (err, row) => {
       if (err) {
-        return res.status(500).json({ error: 'Internal server error' });
+        console.error('Database error during login:', err);
+        return res.status(500).json({ success: false, message: 'Internal server error' });
       }
       if (row) {
         const match = await bcrypt.compare(password, row.password);
         if (match) {
+          console.log('Login successful for user:', username);
           return res.json({ success: true, userId: row.id });
         }
       }
+      console.log('Login failed: Invalid credentials for user:', username);
       res.status(401).json({ success: false, message: 'Invalid credentials' });
     });
   } catch (error) {
-    console.error('Error during login:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('Unexpected error during login:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
   }
 });
 
