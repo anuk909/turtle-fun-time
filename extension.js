@@ -2,49 +2,6 @@
 // Import the module and reference it with the alias vscode in your code below
 const vscode = require('vscode');
 
-// Array of turtle facts
-const turtleFacts = [
-    "Turtles have been around for about 220 million years!",
-    "Some turtles can breathe through their butts!",
-    "The largest turtle is the leatherback sea turtle, which can weigh over 2,000 pounds!",
-    "Turtles can't leave their shells because they're connected to their spine.",
-    "Some turtles can live for more than 100 years!",
-    "There are over 350 species of turtles in the world.",
-    "Sea turtles can migrate thousands of miles across oceans.",
-    "Turtles don't have teeth, but they have sharp beaks.",
-    "The gender of some turtle species is determined by the temperature during incubation.",
-    "Turtles can't swim backwards."
-];
-
-// Function to format code with turtle-themed comments
-function formatCodeWithTurtleTheme(document) {
-    const edit = new vscode.WorkspaceEdit();
-    const fullRange = new vscode.Range(
-        document.positionAt(0),
-        document.positionAt(document.getText().length)
-    );
-
-    const formattedText = document.getText().replace(/class\s+(\w+)/g, (match, className) => {
-        return `
-/****************************
- *      🐢 ${className} 🐢      *
- ****************************/
-${match}`;
-    }).replace(/function\s+(\w+)/g, (match, funcName) => {
-        return `
-/*-----------------------*
- |  🐢 ${funcName} 🐢  |
- *-----------------------*/
-${match}`;
-    });
-
-    const randomFact = turtleFacts[Math.floor(Math.random() * turtleFacts.length)];
-    const turtleFactComment = `// 🐢 Turtle Fact: ${randomFact}\n\n`;
-
-    edit.replace(document.uri, fullRange, turtleFactComment + formattedText);
-    return vscode.workspace.applyEdit(edit);
-}
-
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 
@@ -52,22 +9,12 @@ ${match}`;
  * @param {vscode.ExtensionContext} context
  */
 function activate(context) {
-
-    // Use the console to output diagnostic information (console.log) and errors (console.error)
-    // This line of code will only be executed once when your extension is activated
     console.log('Congratulations, your extension "turtle-fun-time" is now active!');
 
-    // The command has been defined in the package.json file
-    // Now provide the implementation of the command with  registerCommand
-    // The commandId parameter must match the command field in package.json
-    const disposable = vscode.commands.registerCommand('turtle-fun-time.helloWorld', function () {
-        // The code you place here will be executed every time your command is executed
-
-        // Display a message box to the user
-        vscode.window.showInformationMessage('Hello World from Turtle Fun Time!');
-    });
-
-    context.subscriptions.push(disposable);
+    // Get configuration
+    const config = vscode.workspace.getConfiguration('turtleFunTime');
+    let dailyGoal = config.get('dailyGoal', 10);
+    let showTriviaReminders = config.get('showTriviaReminders', true);
 
     // Create a status bar item for the Turtle Coding Companion
     const turtleStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
@@ -75,16 +22,27 @@ function activate(context) {
     turtleStatusBarItem.tooltip = "Turtle Coding Companion";
     turtleStatusBarItem.show();
 
-    // Event listener for when a file is saved
-    vscode.workspace.onDidSaveTextDocument((document) => {
-        turtleStatusBarItem.text = "🐢 Good job!";
-        setTimeout(() => {
-            turtleStatusBarItem.text = "🐢";
-        }, 3000);
-
-        // Apply turtle-themed formatting
-        formatCodeWithTurtleTheme(document);
+    // Turtle Progress Tracker
+    let dailyProgress = 0;
+    const progressDisposable = vscode.workspace.onDidSaveTextDocument(() => {
+        dailyProgress++;
+        turtleStatusBarItem.text = `🐢 Progress: ${dailyProgress}/${dailyGoal}`;
+        if (dailyProgress >= dailyGoal) {
+            vscode.window.showInformationMessage('🎉 Congratulations! You\'ve reached your daily coding goal! 🐢', 'Claim Reward')
+                .then(selection => {
+                    if (selection === 'Claim Reward') {
+                        showTurtleAnimation();
+                    }
+                });
+            dailyProgress = 0;
+        } else {
+            setTimeout(() => {
+                turtleStatusBarItem.text = "🐢";
+            }, 3000);
+        }
     });
+
+    context.subscriptions.push(progressDisposable);
 
     // Event listener for when a build task is started
     vscode.tasks.onDidStartTask(() => {
@@ -101,11 +59,91 @@ function activate(context) {
 
     // Event listener for when a new file is opened
     vscode.workspace.onDidOpenTextDocument(() => {
-        const randomFact = turtleFacts[Math.floor(Math.random() * turtleFacts.length)];
-        vscode.window.showInformationMessage(`🐢 Turtle Fact: ${randomFact}`);
+        vscode.window.showInformationMessage(`🐢 A new file has been opened!`);
     });
 
     context.subscriptions.push(turtleStatusBarItem);
+
+    // Turtle Trivia Game
+    const triviaDisposable = vscode.commands.registerCommand('turtle-fun-time.turtleTrivia', async function () {
+        console.log('Turtle Trivia command triggered');
+        const triviaQuestions = [
+            {
+                question: "What is the largest species of turtle?",
+                options: ["Green Sea Turtle", "Leatherback Sea Turtle", "Loggerhead Sea Turtle", "Hawksbill Sea Turtle"],
+                answer: 1
+            },
+            {
+                question: "How long can sea turtles hold their breath underwater?",
+                options: ["5 minutes", "30 minutes", "2 hours", "5 hours"],
+                answer: 2
+            },
+            {
+                question: "Which of these is not a type of sea turtle?",
+                options: ["Kemp's Ridley", "Flatback", "Snapping", "Olive Ridley"],
+                answer: 2
+            }
+        ];
+
+        let score = 0;
+        for (let question of triviaQuestions) {
+            console.log(`Displaying question: ${question.question}`);
+            const answer = await vscode.window.showQuickPick(question.options, {
+                placeHolder: question.question
+            });
+            console.log(`User selected answer: ${answer}`);
+
+            if (answer === question.options[question.answer]) {
+                score++;
+                console.log('Correct answer');
+                vscode.window.showInformationMessage('Correct! 🐢');
+            } else {
+                console.log('Incorrect answer');
+                vscode.window.showInformationMessage(`Sorry, the correct answer was: ${question.options[question.answer]} 🐢`);
+            }
+        }
+
+        console.log(`Trivia game completed. Score: ${score}/${triviaQuestions.length}`);
+        vscode.window.showInformationMessage(`You scored ${score} out of ${triviaQuestions.length}! 🐢`);
+    });
+
+    context.subscriptions.push(triviaDisposable);
+
+    // Trivia reminder
+    if (showTriviaReminders) {
+        setInterval(() => {
+            vscode.window.showInformationMessage("Time for a turtle trivia break! 🐢", "Start Trivia")
+                .then(selection => {
+                    if (selection === "Start Trivia") {
+                        vscode.commands.executeCommand('turtle-fun-time.turtleTrivia');
+                    }
+                });
+        }, 3600000); // Show reminder every hour
+    }
+
+    function showTurtleAnimation() {
+        const panels = ['🐢', '🐢💨', '🐢💨💨', '🐢💨💨💨', '🏁🐢'];
+        let i = 0;
+        const interval = setInterval(() => {
+            if (i < panels.length) {
+                vscode.window.showInformationMessage(panels[i]);
+                i++;
+            } else {
+                clearInterval(interval);
+                vscode.window.showInformationMessage('🎉 You\'ve earned a turtle speed boost! 🐢💨');
+            }
+        }, 1000);
+    }
+
+    // Listen for configuration changes
+    vscode.workspace.onDidChangeConfiguration(event => {
+        if (event.affectsConfiguration('turtleFunTime.dailyGoal')) {
+            dailyGoal = config.get('dailyGoal', 10);
+        }
+        if (event.affectsConfiguration('turtleFunTime.showTriviaReminders')) {
+            showTriviaReminders = config.get('showTriviaReminders', true);
+        }
+    });
 }
 
 // This method is called when your extension is deactivated

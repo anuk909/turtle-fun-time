@@ -1,56 +1,55 @@
 {
-  "name": "ambitious-react-project",
-  "version": "0.1.0",
-  "private": true,
-  "dependencies": {
-    "@chakra-ui/react": "^2.8.2",
-    "@emotion/react": "^11.13.0",
-    "@emotion/styled": "^11.13.0",
-    "@testing-library/jest-dom": "^5.17.0",
-    "@testing-library/react": "^13.4.0",
-    "@testing-library/user-event": "^13.5.0",
-    "axios": "^1.7.3",
-    "chart.js": "^4.4.3",
-    "framer-motion": "^11.3.21",
-    "react": "^18.3.1",
-    "react-chartjs-2": "^5.2.0",
-    "react-dom": "^18.3.1",
-    "react-router-dom": "^6.26.0",
-    "react-scripts": "5.0.1",
-    "web-vitals": "^2.1.4"
+  "name": "turtle-fun-time",
+  "displayName": "Turtle Fun Time",
+  "description": "A fun VSCode plugin featuring turtles to enhance your coding experience.",
+  "version": "1.1.2",
+  "engines": {
+    "vscode": "^1.92.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:turtle-fun-time.turtleTrivia",
+    "onStartupFinished"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "turtle-fun-time.turtleTrivia",
+        "title": "Turtle Trivia"
+      }
+    ],
+    "configuration": {
+      "title": "Turtle Fun Time",
+      "properties": {
+        "turtleFunTime.dailyGoal": {
+          "type": "number",
+          "default": 10,
+          "description": "Set the daily goal for file saves to trigger the turtle animation."
+        },
+        "turtleFunTime.showTriviaReminders": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable or disable periodic reminders to play the Turtle Trivia game."
+        }
+      }
+    }
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "CI=false react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "lint": "eslint ."
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  },
-  "jest": {
-    "transformIgnorePatterns": [
-      "node_modules/(?!(axios)/)"
-    ]
+    "lint": "eslint .",
+    "pretest": "npm run lint",
+    "test": "node ./test/runTest.js"
   },
   "devDependencies": {
-    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
-    "eslint": "^8.57.0"
-  }
+    "@types/vscode": "^1.92.0",
+    "@types/mocha": "^10.0.7",
+    "@types/node": "20.x",
+    "eslint": "^8.57.0",
+    "typescript": "^5.4.5",
+    "@vscode/test-cli": "^0.0.9",
+    "@vscode/test-electron": "^2.4.0"
+  },
+  "icon": "images/logo.png"
 }
