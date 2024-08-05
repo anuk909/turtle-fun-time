@@ -45,7 +45,28 @@ app.use((req, res, next) => {
   }
   next();
 });
-app.use(cors(corsOptions));
+
+// Use the cors middleware with the updated options
+app.use(cors({
+  ...corsOptions,
+  origin: (origin, callback) => {
+    if (!origin || corsOptions.origin.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.log(`CORS blocked request from origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  optionsSuccessStatus: 200
+}));
+
+// Log all incoming requests for debugging
+app.use((req, res, next) => {
+  console.log(`Incoming request: ${req.method} ${req.url}`);
+  console.log('Request headers:', req.headers);
+  next();
+});
 
 // Other middleware
 app.use(express.json());
@@ -69,14 +90,18 @@ console.log('Middleware setup complete');
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error('Error:', err.message);
+  console.error('Error:', err);
 
   if (err.name === 'CORSError') {
     res.status(403).json({ error: 'CORS error', message: 'Origin not allowed' });
   } else if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
-    res.status(400).json({ error: 'Invalid JSON', message: 'Bad request' });
+    res.status(400).json({ error: 'Invalid JSON', message: 'Bad request: Invalid JSON syntax' });
+  } else if (err.name === 'ValidationError') {
+    res.status(400).json({ error: 'Validation error', message: err.message });
+  } else if (err.name === 'UnauthorizedError') {
+    res.status(401).json({ error: 'Unauthorized', message: 'Authentication required' });
   } else {
-    res.status(500).json({ error: 'Internal server error', message: 'An unexpected error occurred' });
+    res.status(500).json({ error: 'Internal server error', message: 'An unexpected error occurred', details: err.message });
   }
 });
 
@@ -119,14 +144,27 @@ app.post('/register', async (req, res) => {
   console.log('Received registration request:', { ...req.body, password: '[REDACTED]' });
   const { username, password, email } = req.body;
 
+  // Enhanced input validation
   if (!username || !password || !email) {
-    return res.status(400).json({ error: 'Missing required fields' });
+    return res.status(400).json({ error: 'Missing required fields', details: { username: !username, password: !password, email: !email } });
+  }
+
+  // Validate username (alphanumeric, 3-20 characters)
+  const usernameRegex = /^[a-zA-Z0-9]{3,20}$/;
+  if (!usernameRegex.test(username)) {
+    return res.status(400).json({ error: 'Invalid username format', message: 'Username must be 3-20 alphanumeric characters' });
   }
 
   // Validate email format
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
-    return res.status(400).json({ error: 'Invalid email format' });
+    return res.status(400).json({ error: 'Invalid email format', message: 'Please provide a valid email address' });
+  }
+
+  // Validate password strength (at least 8 characters, including uppercase, lowercase, number)
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
+  if (!passwordRegex.test(password)) {
+    return res.status(400).json({ error: 'Weak password', message: 'Password must be at least 8 characters long and include uppercase, lowercase, and numbers' });
   }
 
   try {
@@ -138,17 +176,19 @@ app.post('/register', async (req, res) => {
     db.run('INSERT INTO users (username, password, email) VALUES (?, ?, ?)', [username, hashedPassword, email], function(err) {
       if (err) {
         console.error('Error during user registration:', err.message);
-        if (err.message.includes('UNIQUE constraint failed')) {
-          return res.status(409).json({ error: 'Username or email already exists' });
+        if (err.message.includes('UNIQUE constraint failed: users.username')) {
+          return res.status(409).json({ error: 'Username already exists', message: 'Please choose a different username' });
+        } else if (err.message.includes('UNIQUE constraint failed: users.email')) {
+          return res.status(409).json({ error: 'Email already registered', message: 'This email is already associated with an account' });
         }
-        return res.status(500).json({ error: 'Internal server error' });
+        return res.status(500).json({ error: 'Internal server error', message: 'An unexpected error occurred during registration' });
       }
       console.log('User registered successfully. User ID:', this.lastID);
       res.status(201).json({ id: this.lastID, message: 'User registered successfully' });
     });
   } catch (error) {
     console.error('Error during registration:', error.message);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Internal server error', message: 'An unexpected error occurred during registration' });
   }
 });
 
