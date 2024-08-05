@@ -35,12 +35,13 @@ app.use((req, res, next) => {
   const origin = req.headers.origin;
   if (corsOptions.origin.includes(origin)) {
     res.header('Access-Control-Allow-Origin', origin);
-  }
-  res.header('Access-Control-Allow-Methods', corsOptions.methods.join(','));
-  res.header('Access-Control-Allow-Headers', corsOptions.allowedHeaders.join(','));
-  res.header('Access-Control-Allow-Credentials', corsOptions.credentials);
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(204);
+    res.header('Access-Control-Allow-Methods', corsOptions.methods.join(','));
+    res.header('Access-Control-Allow-Headers', corsOptions.allowedHeaders.join(','));
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Max-Age', corsOptions.maxAge.toString());
+    if (req.method === 'OPTIONS') {
+      return res.sendStatus(204);
+    }
   }
   next();
 });
