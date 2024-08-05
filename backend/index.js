@@ -24,7 +24,8 @@ const corsOptions = {
 const accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' });
 
 // Middleware
-app.use(cors(corsOptions)); // Apply CORS middleware first
+// Apply CORS middleware first to handle preflight requests and set appropriate headers
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(morgan('combined', { stream: accessLogStream }));
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :req[header] :res[header]'));
