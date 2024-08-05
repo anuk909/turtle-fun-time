@@ -16,19 +16,54 @@ const corsOptions = {
   optionsSuccessStatus: 200,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
+  exposedHeaders: ['Access-Control-Allow-Origin', 'Access-Control-Allow-Credentials'],
   credentials: true,
-  maxAge: 86400 // 24 hours in seconds
+  maxAge: 86400, // 24 hours in seconds
+  preflightContinue: false
 };
+
+// Log CORS configuration
+console.log('CORS configuration:', JSON.stringify(corsOptions, null, 2));
 
 // Create a write stream (in append mode)
 const accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' });
 
 // Middleware
 // Apply CORS middleware first to handle preflight requests and set appropriate headers
+// This is crucial for proper CORS functionality, especially for handling OPTIONS requests
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (corsOptions.origin.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+  }
+  res.header('Access-Control-Allow-Methods', corsOptions.methods.join(','));
+  res.header('Access-Control-Allow-Headers', corsOptions.allowedHeaders.join(','));
+  res.header('Access-Control-Allow-Credentials', corsOptions.credentials);
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+  next();
+});
 app.use(cors(corsOptions));
+
+// Other middleware
 app.use(express.json());
 app.use(morgan('combined', { stream: accessLogStream }));
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :req[header] :res[header]'));
+
+// CORS debugging middleware
+app.use((req, res, next) => {
+  console.log('CORS-enabled request received:', req.method, req.url);
+  console.log('Origin:', req.get('Origin'));
+  console.log('Access-Control-Request-Headers:', req.get('Access-Control-Request-Headers'));
+  console.log('Access-Control-Request-Method:', req.get('Access-Control-Request-Method'));
+  console.log('Request headers:', req.headers);
+  res.on('finish', () => {
+    console.log('Response headers:', res.getHeaders());
+  });
+  next();
+});
+
 console.log('Middleware setup complete');
 
 // Error handling middleware
@@ -79,7 +114,7 @@ const transporter = nodemailer.createTransport({
 });
 
 // Routes
-app.post('/auth/register', async (req, res) => {
+app.post('/register', async (req, res) => {
   console.log('Received registration request:', { ...req.body, password: '[REDACTED]' });
   const { username, password, email } = req.body;
 
