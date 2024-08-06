@@ -2,6 +2,8 @@
 
 Turtle Fun Time is a fun and interactive VSCode extension centered around turtles. It brings a touch of turtle-themed joy to your coding experience!
 
+Current version: 1.1.1
+
 ## Features
 
 Turtle Fun Time offers the following features:
@@ -24,11 +26,16 @@ Turtle Fun Time offers the following features:
 
 To install the Turtle Fun Time extension:
 
-1. Download the .vsix file from the [releases page](https://github.com/anuk909/turtle-fun-time/releases).
-2. Open Visual Studio Code.
-3. Go to the Extensions view (Ctrl+Shift+X).
-4. Click on the three dots (...) in the top-right corner of the Extensions view.
-5. Select "Install from VSIX..." and choose the downloaded .vsix file.
+1. Visit the [Visual Studio Code Marketplace](https://marketplace.visualstudio.com/items?itemName=anuk909.turtle-fun-time).
+2. Click on the "Install" button.
+3. Once installed, reload Visual Studio Code to activate the extension.
+
+Alternatively, you can install it directly from VS Code:
+
+1. Open Visual Studio Code.
+2. Go to the Extensions view (Ctrl+Shift+X).
+3. Search for "Turtle Fun Time".
+4. Click on the "Install" button next to the extension.
 
 ## Usage
 
@@ -46,7 +53,12 @@ Turtle Fun Time works out of the box with Visual Studio Code. There are no addit
 
 ## Extension Settings
 
-Currently, Turtle Fun Time does not add any configurable settings to VSCode. All features work automatically once the extension is installed.
+Turtle Fun Time adds the following settings:
+
+* `turtleFunTime.dailyGoal`: Set the number of file saves required to reach the daily goal (default: 10).
+* `turtleFunTime.showTriviaReminders`: Enable or disable periodic reminders to play the Turtle Trivia game (default: true).
+
+You can modify these settings in your VS Code settings (File > Preferences > Settings).
 
 ## Known Issues
 
@@ -54,11 +66,19 @@ There are currently no known issues. If you encounter any problems, please repor
 
 ## Release Notes
 
+### 1.1.1
+
+Improvements:
+- Enhanced error handling in the Turtle Trivia command for a smoother user experience
+- Improved user feedback during the Turtle Trivia game
+- Minor bug fixes and performance optimizations
+
 ### 1.1.0
 
 New features added:
 - Turtle Progress Tracker
 - Turtle Trivia Game
+- Configurable settings for daily goal and trivia reminders
 
 ### 1.0.0
 

@@ -9,22 +9,12 @@ const vscode = require('vscode');
  * @param {vscode.ExtensionContext} context
  */
 function activate(context) {
-
-    // Use the console to output diagnostic information (console.log) and errors (console.error)
-    // This line of code will only be executed once when your extension is activated
     console.log('Congratulations, your extension "turtle-fun-time" is now active!');
 
-    // The command has been defined in the package.json file
-    // Now provide the implementation of the command with  registerCommand
-    // The commandId parameter must match the command field in package.json
-    const disposable = vscode.commands.registerCommand('turtle-fun-time.helloWorld', function () {
-        // The code you place here will be executed every time your command is executed
-
-        // Display a message box to the user
-        vscode.window.showInformationMessage('Hello World from Turtle Fun Time!');
-    });
-
-    context.subscriptions.push(disposable);
+    // Get configuration
+    const config = vscode.workspace.getConfiguration('turtleFunTime');
+    let dailyGoal = config.get('dailyGoal', 10);
+    let showTriviaReminders = config.get('showTriviaReminders', true);
 
     // Create a status bar item for the Turtle Coding Companion
     const turtleStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
@@ -34,11 +24,10 @@ function activate(context) {
 
     // Turtle Progress Tracker
     let dailyProgress = 0;
-    const progressGoal = 10;
     const progressDisposable = vscode.workspace.onDidSaveTextDocument(() => {
         dailyProgress++;
-        turtleStatusBarItem.text = `🐢 Progress: ${dailyProgress}/${progressGoal}`;
-        if (dailyProgress >= progressGoal) {
+        turtleStatusBarItem.text = `🐢 Progress: ${dailyProgress}/${dailyGoal}`;
+        if (dailyProgress >= dailyGoal) {
             vscode.window.showInformationMessage('🎉 Congratulations! You\'ve reached your daily coding goal! 🐢', 'Claim Reward')
                 .then(selection => {
                     if (selection === 'Claim Reward') {
@@ -77,6 +66,7 @@ function activate(context) {
 
     // Turtle Trivia Game
     const triviaDisposable = vscode.commands.registerCommand('turtle-fun-time.turtleTrivia', async function () {
+        console.log('Turtle Trivia command triggered');
         const triviaQuestions = [
             {
                 question: "What is the largest species of turtle?",
@@ -97,26 +87,41 @@ function activate(context) {
 
         let score = 0;
         for (let question of triviaQuestions) {
+            console.log(`Displaying question: ${question.question}`);
             const answer = await vscode.window.showQuickPick(question.options, {
                 placeHolder: question.question
             });
+            console.log(`User selected answer: ${answer}`);
 
             if (answer === question.options[question.answer]) {
                 score++;
+                console.log('Correct answer');
                 vscode.window.showInformationMessage('Correct! 🐢');
             } else {
+                console.log('Incorrect answer');
                 vscode.window.showInformationMessage(`Sorry, the correct answer was: ${question.options[question.answer]} 🐢`);
             }
         }
 
+        console.log(`Trivia game completed. Score: ${score}/${triviaQuestions.length}`);
         vscode.window.showInformationMessage(`You scored ${score} out of ${triviaQuestions.length}! 🐢`);
     });
 
     context.subscriptions.push(triviaDisposable);
 
+    // Trivia reminder
+    if (showTriviaReminders) {
+        setInterval(() => {
+            vscode.window.showInformationMessage("Time for a turtle trivia break! 🐢", "Start Trivia")
+                .then(selection => {
+                    if (selection === "Start Trivia") {
+                        vscode.commands.executeCommand('turtle-fun-time.turtleTrivia');
+                    }
+                });
+        }, 3600000); // Show reminder every hour
+    }
+
     function showTurtleAnimation() {
-        // This is a placeholder for the turtle animation
-        // In a real implementation, this would show a more complex animation or graphic
         const panels = ['🐢', '🐢💨', '🐢💨💨', '🐢💨💨💨', '🏁🐢'];
         let i = 0;
         const interval = setInterval(() => {
@@ -129,6 +134,16 @@ function activate(context) {
             }
         }, 1000);
     }
+
+    // Listen for configuration changes
+    vscode.workspace.onDidChangeConfiguration(event => {
+        if (event.affectsConfiguration('turtleFunTime.dailyGoal')) {
+            dailyGoal = config.get('dailyGoal', 10);
+        }
+        if (event.affectsConfiguration('turtleFunTime.showTriviaReminders')) {
+            showTriviaReminders = config.get('showTriviaReminders', true);
+        }
+    });
 }
 
 // This method is called when your extension is deactivated
